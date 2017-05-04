@@ -1,5 +1,8 @@
 from kspmaster import KSP
-import random
+import numpy as np
+import sys
+
+epsilon = 1.0/sys.maxint #avoid "division by zero" error
 
 def route_to_string(route):
     r = ""
@@ -21,16 +24,48 @@ def string_to_route(route):
     return r
 
 class Agent:
-    def __init__(self,routes):
-        self.table = {}
+    def __init__(self,routes,delta=1.0):
+        self.delta = delta
+        self.routes_costs = {}
         for i in routes:
             route = i[0]
             route = route_to_string(route)
             cost = i[1]
-            self.table[route] = cost
+            self.routes_costs[route] = [cost]
+            self.costs_table = []
+        self.p_table = self.gen_p_table()
+
+    def gen_p_table(self):
+        p_table = {}
+        for route in self.routes_costs.keys():
+            v1 = (1.0/(sum(self.routes_costs[route])+epsilon))
+            v2 = 0.0
+            for route2 in self.routes_costs.keys():
+                v2 += (1.0/(sum(self.routes_costs[route2])+epsilon))
+            p = v1/v2
+            p_table[route] = p
+        return p_table
+
+    def update_p_table(self):
+        for route in self.routes_costs.keys():
+            v1 = (1.0/(sum(self.routes_costs[route])+epsilon))
+            v2 = 0.0
+            for route2 in self.routes_costs.keys():
+                v2 += (1.0/(sum(self.routes_costs[route2])+epsilon))
+            p = v1/v2
+            self.p_table[route] = ((self.delta)*p) + ((1-self.delta)*self.p_table[route])
+
+    def update_agent(self,route,new_cost):
+        r = route_to_string(route)
+        self.routes_costs[r].append(new_cost)
+        self.update_p_table()
 
     def select_route(self):
-        min_cost = min(self.table.itervalues())
-        min_routes = [k for k in self.table if self.table[k] == min_cost]
-        r = random.choice(min_routes)
+        routes = []
+        prob = []
+        for route in self.p_table.keys():
+            routes.append(route)
+            prob.append(self.p_table[route])
+        r = np.random.choice(routes,p=prob)
+        print r + " (p=" + str(self.p_table[r]) + ")"
         return string_to_route(r)
