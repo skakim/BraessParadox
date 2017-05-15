@@ -55,6 +55,7 @@ v1.43 (22-Fev-2017) - Documentation for the classes.
 
 import argparse
 from py_expression_eval import Parser
+from copy import copy
 
 class Node(object):
     """
@@ -105,6 +106,7 @@ def generateGraph(graph_file, flow=0.0):
     V = [] # vertices
     E = [] # edges
     F = {} # cost functions
+    EF = {} # edge: (function,constant)
     OD = [] # OD pairs
 
     lineid = 0
@@ -147,7 +149,11 @@ def generateGraph(graph_file, flow=0.0):
             # process the cost
             function = F[taglist[4]] # get the corresponding function
             # associate constants and values specified in the line (in order of occurrence)
+            
             param_values = dict(zip(function[1], map(float, taglist[5:])))
+
+            c = param_values
+            f = copy(function[2])
 
             param_values[function[0]] = flow # set the function's parameter with the flow value
             cost = function[2].evaluate(param_values) # calculate the cost
@@ -156,6 +162,10 @@ def generateGraph(graph_file, flow=0.0):
             E.append(Edge(taglist[1], taglist[2], taglist[3], cost))
             if taglist[0] == 'edge':
                 E.append(Edge('%s-%s'%(taglist[3], taglist[2]), taglist[3], taglist[2], cost))
+    
+            e = '%s-%s'%(taglist[2], taglist[3])
+
+            EF[e] = (c,f)
 
         elif taglist[0] == 'od':
             OD.append(taglist[1])
@@ -164,7 +174,7 @@ def generateGraph(graph_file, flow=0.0):
             raise Exception('Network file does not comply with the specification!'\
                             '(line %d: "%s")' % (lineid, line))
 
-    return V, E, OD
+    return V, E, OD, EF
 
 # generate the graph from a list of nodes* and a list of edges**
 # * a node here is represented by a string referring to its name

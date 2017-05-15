@@ -67,5 +67,5 @@ class Agent:
             routes.append(route)
             prob.append(self.p_table[route])
         r = np.random.choice(routes,p=prob)
-        print r + " (p=" + str(self.p_table[r]) + ")"
+        #print r + " (p=" + str(self.p_table[r]) + ")"
         return string_to_route(r)
