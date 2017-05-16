@@ -152,7 +152,7 @@ def generateGraph(graph_file, flow=0.0):
             
             param_values = dict(zip(function[1], map(float, taglist[5:])))
 
-            c = copy(param_values)
+            c = param_values
             f = copy(function[2])
 
             param_values[function[0]] = flow # set the function's parameter with the flow value

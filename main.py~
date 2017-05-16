@@ -63,8 +63,8 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                 #if ai == 0:
                     #print edge,costs[edge]
                 cost += costs[edge]
-            #if ai == 0:
-                #print cost
+            if ai == 0:
+                print cost
                 #print ag.p_table
             ag.update_agent(r,cost)
             global_cost += cost
