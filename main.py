@@ -24,9 +24,9 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
     routes = KSP.getKRoutes(V, E, origin, destination, K)
     #print routes
 
-    p_routes = [x[0] for x in routes]
-    print p_routes
-
+    p_routes = [str(x[0]) for x in routes]
+    #print p_routes
+    print ",".join(map(str,p_routes))
     agents = []
 
     for i in xrange(num_agents):
@@ -37,17 +37,23 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
 
     for it in xrange(num_iterations):
         edges_use = {}
+        routes_use = {x:0 for x in p_routes}
         rs = []
         for agent in agents:
             route = agent.select_route()
-            if agent == agents[0]:
-                print p_routes.index(route)
+            routes_use[str(route)] += 1
+            #if agent == agents[0]:
+                #print p_routes.index(route)
             rs.append(route)
             for edge in route:
                 if edge not in edges_use.keys():
                     edges_use[edge] = 1
                 else:
                     edges_use[edge] += 1
+        usages = []
+        for p in p_routes:
+            usages.append(str(routes_use[p]))
+        print ",".join(usages)
 
         costs = {}
         for edge in edges_use.keys():
