@@ -2,12 +2,12 @@ from kspmaster import KSP
 from Agent import Agent
 
 # parameters to be passed to the KSP algorithm
-graph_file = './network-files-master/Braess-graphs/Braess_8_4200_10_c1.net'    # the graph of the traffic network (the file format is specified by the algorithm's help)
+graph_file = './network-files-master/Braess-graphs/Braess_1_4200_10_c1.net'    # the graph of the traffic network (the file format is specified by the algorithm's help)
 ODpairs = ['s|t'] # the list of origins and destinations
 flow = 1.0               # the flow of vehicles to be used when computing the links' costs (the default is zero)("initial optimism" technique of Q-learning)
-num_agents = 4200       # the number of agents of the simulation
+num_agents = 1500       # the number of agents of the simulation
 K = 100                  	# the number of paths to find ("initial optimism" technique of Q-learning)
-num_iterations = 50    # the number of iterations of the simulation
+num_iterations = 1000    # the number of iterations of the simulation
 
 # generate the list of vertices and edges from the network file
 V, E, OD, EF = KSP.generateGraph(graph_file, flow)
@@ -26,7 +26,9 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
 
     p_routes = [str(x[0]) for x in routes]
     #print p_routes
-    print ",".join(map(str,p_routes))
+    #print ",".join(map(str,p_routes))
+    max_route = max(p_routes, key=len)
+    print max_route
     agents = []
 
     for i in xrange(num_agents):
@@ -51,9 +53,10 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                 else:
                     edges_use[edge] += 1
         usages = []
-        for p in p_routes:
-            usages.append(str(routes_use[p]))
-        print ",".join(usages)
+        #for p in p_routes:
+            #usages.append(str(routes_use[p]))
+        #print ",".join(usages)
+        print str(routes_use[max_route])
 
         costs = {}
         for edge in edges_use.keys():
