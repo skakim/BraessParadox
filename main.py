@@ -7,7 +7,7 @@ ODpairs = ['s|t'] # the list of origins and destinations
 flow = 1.0               # the flow of vehicles to be used when computing the links' costs (the default is zero)("initial optimism" technique of Q-learning)
 num_agents = 4200       # the number of agents of the simulation
 K = 100                  	# the number of paths to find ("initial optimism" technique of Q-learning)
-num_iterations = 100    # the number of iterations of the simulation
+num_iterations = 50    # the number of iterations of the simulation
 
 # generate the list of vertices and edges from the network file
 V, E, OD, EF = KSP.generateGraph(graph_file, flow)
