@@ -69,3 +69,28 @@ class Agent:
         r = np.random.choice(routes,p=prob)
         #print r + " (p=" + str(self.p_table[r]) + ")"
         return string_to_route(r)
+
+    def select_route_except(self,exception):
+        routes = []
+        prob = []
+        n_routes = len(self.p_table.keys())-1
+        except_p = self.p_table[exception]
+        for route in self.p_table.keys():
+            if route != exception:
+                routes.append(route)
+                prob.append(self.p_table[route] + (except_p/n_routes))
+        r = np.random.choice(routes,p=prob)
+        #print r + " (p=" + str(self.p_table[r]) + ")"
+        return string_to_route(r)
+
+    def process_forecast(self,route,cost):
+        self.update_agent(route,cost)
+        r = route_to_string(route)
+        mean = np.mean(self.routes_costs[r])
+        if cost <= mean:
+            return route
+        else: #choose another route
+            return self.select_route_except(route_to_string(route))
+
+
+

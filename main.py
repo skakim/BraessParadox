@@ -28,7 +28,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
     #print p_routes
     #print ",".join(map(str,p_routes))
     max_route = max(p_routes, key=len)
-    print max_route
+    #print max_route
     agents = []
 
     for i in xrange(num_agents):
@@ -41,6 +41,8 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
         edges_use = {}
         routes_use = {x:0 for x in p_routes}
         rs = []
+	
+	    #each agent select his route
         for agent in agents:
             route = agent.select_route()
             routes_use[str(route)] += 1
@@ -56,25 +58,59 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
         #for p in p_routes:
             #usages.append(str(routes_use[p]))
         #print ",".join(usages)
-        print str(routes_use[max_route])
+        #print str(routes_use[max_route])
 
+	    #process edges cost
         costs = {}
         for edge in edges_use.keys():
             EF[edge][0]['f'] = edges_use[edge]
             costs[edge] = EF[edge][1].evaluate(EF[edge][0])
 
+        #return forecast and receive new choices
+        new_edges_use = {}
+        new_routes_use = {x:0 for x in p_routes}
+        new_rs = []
+        changes = 0
+        for ai in xrange(len(agents)):
+            ag = agents[ai]
+            r = rs[ai]
+            cost = 0.0
+            for edge in r:
+                cost += costs[edge]
+            route = agent.process_forecast(r,cost)
+            if route != r:
+                changes += 1
+            new_rs.append(route)
+            for edge in route:
+                if edge not in new_edges_use.keys():
+                    new_edges_use[edge] = 1
+                else:
+                    new_edges_use[edge] += 1
+
+		#process new edges cost
+        new_costs = {}
+        for edge in new_edges_use.keys():
+            EF[edge][0]['f'] = new_edges_use[edge]
+            new_costs[edge] = EF[edge][1].evaluate(EF[edge][0])
+	
+	    #update agents
         global_cost = 0.0
         for ai in xrange(len(agents)):
             ag = agents[ai]            
-            r = rs[ai]
+            r = new_rs[ai]
             cost = 0.0
             for edge in r:
                 #if ai == 0:
                     #print edge,costs[edge]
-                cost += costs[edge]
+                cost += new_costs[edge]
             #if ai == 0:
                 #print cost
                 #print ag.p_table
             ag.update_agent(r,cost)
             global_cost += cost
-        #print global_cost
+        print global_cost, changes
+
+
+
+
+
