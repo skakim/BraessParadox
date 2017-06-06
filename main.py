@@ -32,7 +32,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
     agents = []
 
     for i in xrange(num_agents):
-        a = Agent(routes)
+        a = Agent(routes,delta=0.8,learning_p=0.2)
         agents.append(a)
         #if i == 0:
             #print a.p_table

@@ -24,8 +24,9 @@ def string_to_route(route):
     return r
 
 class Agent:
-    def __init__(self,routes,delta=1.0):
+    def __init__(self,routes,delta=1.0,learning_p=1.0):
         self.delta = delta
+        self.learning_p = learning_p
         self.routes_costs = {}
         for i in routes:
             route = i[0]
@@ -47,13 +48,14 @@ class Agent:
         return p_table
 
     def update_p_table(self):
-        for route in self.routes_costs.keys():
-            v1 = (1.0/(sum(self.routes_costs[route])+epsilon))
-            v2 = 0.0
-            for route2 in self.routes_costs.keys():
-                v2 += (1.0/(sum(self.routes_costs[route2])+epsilon))
-            p = v1/v2
-            self.p_table[route] = ((self.delta)*p) + ((1-self.delta)*self.p_table[route])
+        if np.random.random() <= self.learning_p:
+            for route in self.routes_costs.keys():
+                v1 = (1.0/(sum(self.routes_costs[route])+epsilon))
+                v2 = 0.0
+                for route2 in self.routes_costs.keys():
+                    v2 += (1.0/(sum(self.routes_costs[route2])+epsilon))
+                p = v1/v2
+                self.p_table[route] = ((self.delta)*p) + ((1-self.delta)*self.p_table[route])
 
     def update_agent(self,route,new_cost):
         r = route_to_string(route)
