@@ -5,9 +5,10 @@ from Agent import Agent
 graph_file = './network-files-master/Braess-graphs/Braess_1_4200_10_c1.net'    # the graph of the traffic network (the file format is specified by the algorithm's help)
 ODpairs = ['s|t'] # the list of origins and destinations
 flow = 1.0               # the flow of vehicles to be used when computing the links' costs (the default is zero)("initial optimism" technique of Q-learning)
-num_agents = 1500       # the number of agents of the simulation
-K = 100                  	# the number of paths to find ("initial optimism" technique of Q-learning)
-num_iterations = 1000    # the number of iterations of the simulation
+num_agents = 4200       # the number of agents of the simulation
+K = 100                  	# the number of paths to find 
+num_iterations = 50    # the number of iterations of the simulation
+agents_type = 'forecast' #type of the agents
 
 # generate the list of vertices and edges from the network file
 V, E, OD, EF = KSP.generateGraph(graph_file, flow)
@@ -65,50 +66,72 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
         for edge in edges_use.keys():
             EF[edge][0]['f'] = edges_use[edge]
             costs[edge] = EF[edge][1].evaluate(EF[edge][0])
+        #print costs
 
-        #return forecast and receive new choices
-        new_edges_use = {}
-        new_routes_use = {x:0 for x in p_routes}
-        new_rs = []
-        changes = 0
-        for ai in xrange(len(agents)):
-            ag = agents[ai]
-            r = rs[ai]
-            cost = 0.0
-            for edge in r:
-                cost += costs[edge]
-            route = agent.process_forecast(r,cost)
-            if route != r:
-                changes += 1
-            new_rs.append(route)
-            for edge in route:
-                if edge not in new_edges_use.keys():
-                    new_edges_use[edge] = 1
-                else:
-                    new_edges_use[edge] += 1
-
-		#process new edges cost
-        new_costs = {}
-        for edge in new_edges_use.keys():
-            EF[edge][0]['f'] = new_edges_use[edge]
-            new_costs[edge] = EF[edge][1].evaluate(EF[edge][0])
-	
-	    #update agents
-        global_cost = 0.0
-        for ai in xrange(len(agents)):
-            ag = agents[ai]            
-            r = new_rs[ai]
-            cost = 0.0
-            for edge in r:
-                #if ai == 0:
+        if agents_type == 'greedy':
+            #update agents
+            global_cost = 0.0
+            for ai in xrange(len(agents)):
+                ag = agents[ai]            
+                r = rs[ai]
+                cost = 0.0
+                for edge in r:
+                    #if ai == 0:
                     #print edge,costs[edge]
-                cost += new_costs[edge]
-            #if ai == 0:
-                #print cost
-                #print ag.p_table
-            ag.update_agent(r,cost)
-            global_cost += cost
-        print global_cost, changes
+                    cost += costs[edge]
+                #if ai == 0:
+                    #print cost
+                    #print ag.p_table
+                ag.update_agent(r,cost)
+                global_cost += cost
+            print global_cost
+        
+        elif agents_type == 'forecast':
+            #return forecast and receive new choices
+            new_edges_use = {}
+            new_routes_use = {x:0 for x in p_routes}
+            new_rs = []
+            changes = 0
+            for ai in xrange(len(agents)):
+                ag = agents[ai]
+                r = rs[ai]
+                cost = 0.0
+                for edge in r:
+                    cost += costs[edge]
+                route = agent.process_forecast(r,cost)
+                if route != r:
+                    changes += 1
+                new_rs.append(route)
+                for edge in route:
+                    if edge not in new_edges_use.keys():
+                        new_edges_use[edge] = 1
+                    else:
+                        new_edges_use[edge] += 1
+
+		    #process new edges cost
+            new_costs = {}
+            for edge in new_edges_use.keys():
+                EF[edge][0]['f'] = new_edges_use[edge]
+                new_costs[edge] = EF[edge][1].evaluate(EF[edge][0])
+
+            #print new_costs
+	
+	        #update agents
+            global_cost = 0.0
+            for ai in xrange(len(agents)):
+                ag = agents[ai]            
+                r = new_rs[ai]
+                cost = 0.0
+                for edge in r:
+                    #if ai == 0:
+                        #print edge,costs[edge]
+                    cost += new_costs[edge]
+                #if ai == 0:
+                    #print cost
+                    #print ag.p_table
+                ag.update_agent(r,cost)
+                global_cost += cost
+            print global_cost
 
 
 
