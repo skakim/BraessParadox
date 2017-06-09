@@ -84,7 +84,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                     #print ag.p_table
                 ag.update_agent(r,cost)
                 global_cost += cost
-            print global_cost
+            print global_cost#, routes_use[max_route]
         
         elif agents_type == 'forecast':
             #return forecast and receive new choices
@@ -114,7 +114,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                 EF[edge][0]['f'] = new_edges_use[edge]
                 new_costs[edge] = EF[edge][1].evaluate(EF[edge][0])
 
-            #print new_costs
+            #print new_edges_use,new_costs
 	
 	        #update agents
             global_cost = 0.0
@@ -131,7 +131,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                     #print ag.p_table
                 ag.update_agent(r,cost)
                 global_cost += cost
-            print global_cost
+            print global_cost#,new_routes_use[max_route]
 
 
 
