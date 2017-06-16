@@ -1,5 +1,6 @@
 from kspmaster import KSP
 from Agent import Agent
+import sys
 
 # parameters to be passed to the KSP algorithm
 graph_file = './network-files-master/Braess-graphs/Braess_1_4200_10_c1.net'    # the graph of the traffic network (the file format is specified by the algorithm's help)
@@ -7,8 +8,9 @@ ODpairs = ['s|t'] # the list of origins and destinations
 flow = 1.0               # the flow of vehicles to be used when computing the links' costs (the default is zero)("initial optimism" technique of Q-learning)
 num_agents = 4200       # the number of agents of the simulation
 K = 100                  	# the number of paths to find 
-num_iterations = 50    # the number of iterations of the simulation
-agents_type = 'forecast' #type of the agents
+num_iterations = 200    # the number of iterations of the simulation
+forecast = True         #forecast given
+manipulation = False   #forecast manipulation
 
 # generate the list of vertices and edges from the network file
 V, E, OD, EF = KSP.generateGraph(graph_file, flow)
@@ -68,7 +70,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
             costs[edge] = EF[edge][1].evaluate(EF[edge][0])
         #print costs
 
-        if agents_type == 'greedy':
+        if not(forecast):
             #update agents
             global_cost = 0.0
             for ai in xrange(len(agents)):
@@ -86,19 +88,29 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                 global_cost += cost
             print global_cost#, routes_use[max_route]
         
-        elif agents_type == 'forecast':
+        else:
             #return forecast and receive new choices
             new_edges_use = {}
             new_routes_use = {x:0 for x in p_routes}
             new_rs = []
             changes = 0
+            max_routes_manip = 0
             for ai in xrange(len(agents)):
                 ag = agents[ai]
                 r = rs[ai]
                 cost = 0.0
                 for edge in r:
                     cost += costs[edge]
+                if manipulation: #information manipulation
+                    if str(r) == max_route: #using "shortcut"
+                        cost = 99999 #fake info, to make not use this route
+                        max_routes_manip += 1
+                    else: #not using shortcut
+                        cost = 0 #fake info, to make continue using
+                #if ai == 0: 
+                    #print r,cost,
                 route = agent.process_forecast(r,cost)
+                new_routes_use[str(route)] += 1
                 if route != r:
                     changes += 1
                 new_rs.append(route)
@@ -126,12 +138,16 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                     #if ai == 0:
                         #print edge,costs[edge]
                     cost += new_costs[edge]
-                #if ai == 0:
+                if ai == 0:
                     #print cost
                     #print ag.p_table
+                    print ag.routes_costs_somatories['s->v1->w1->t']/(ag.routes_usage['s->v1->w1->t']+(1.0/sys.maxint)),
+                    print ag.routes_costs_somatories['s->v1->t']/(ag.routes_usage['s->v1->t']+(1.0/sys.maxint)),
+                    print ag.routes_costs_somatories['s->w1->t']/(ag.routes_usage['s->w1->t']+(1.0/sys.maxint)),
+                    print r,cost,
                 ag.update_agent(r,cost)
                 global_cost += cost
-            print global_cost#,new_routes_use[max_route]
+            print global_cost#new_routes_use[max_route]
 
 
 

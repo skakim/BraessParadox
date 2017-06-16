@@ -27,39 +27,45 @@ class Agent:
     def __init__(self,routes,delta=1.0,learning_p=1.0):
         self.delta = delta
         self.learning_p = learning_p
-        self.routes_costs = {}
+        #self.routes_costs = {}
+        self.routes_costs_somatories = {}
+        self.routes_usage = {}
         for i in routes:
             route = i[0]
             route = route_to_string(route)
             cost = i[1]
-            self.routes_costs[route] = [cost]
+            #self.routes_costs[route] = [cost]
+            self.routes_costs_somatories[route] = cost
+            self.routes_usage[route] = 0
             self.costs_table = []
         self.p_table = self.gen_p_table()
 
     def gen_p_table(self):
         p_table = {}
-        for route in self.routes_costs.keys():
-            v1 = (1.0/(sum(self.routes_costs[route])+epsilon))
+        for route in self.routes_costs_somatories.keys():
+            v1 = (1.0/(self.routes_costs_somatories[route]+epsilon))
             v2 = 0.0
-            for route2 in self.routes_costs.keys():
-                v2 += (1.0/(sum(self.routes_costs[route2])+epsilon))
+            for route2 in self.routes_costs_somatories.keys():
+                v2 += (1.0/(self.routes_costs_somatories[route2]+epsilon))
             p = v1/v2
             p_table[route] = p
         return p_table
 
     def update_p_table(self):
         if np.random.random() <= self.learning_p:
-            for route in self.routes_costs.keys():
-                v1 = (1.0/(sum(self.routes_costs[route])+epsilon))
+            for route in self.routes_costs_somatories.keys():
+                v1 = (1.0/(self.routes_costs_somatories[route]+epsilon))
                 v2 = 0.0
-                for route2 in self.routes_costs.keys():
-                    v2 += (1.0/(sum(self.routes_costs[route2])+epsilon))
+                for route2 in self.routes_costs_somatories.keys():
+                    v2 += (1.0/(self.routes_costs_somatories[route2]+epsilon))
                 p = v1/v2
                 self.p_table[route] = ((self.delta)*p) + ((1-self.delta)*self.p_table[route])
 
     def update_agent(self,route,new_cost):
         r = route_to_string(route)
-        self.routes_costs[r].append(new_cost)
+        #self.routes_costs[r].append(new_cost)
+        self.routes_costs_somatories[r]+=new_cost
+        self.routes_usage[r] += 1
         self.update_p_table()
 
     def select_route(self):
@@ -88,7 +94,7 @@ class Agent:
     def process_forecast(self,route,cost):
         self.update_agent(route,cost)
         r = route_to_string(route)
-        mean = np.mean(self.routes_costs[r])
+        mean = self.routes_costs_somatories[r]/self.routes_usage[r]
         if cost <= mean:
             return route
         else: #choose another route
