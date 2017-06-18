@@ -3,14 +3,16 @@ from Agent import Agent
 import sys
 
 # parameters to be passed to the KSP algorithm
-graph_file = './network-files-master/Braess-graphs/Braess_1_4200_10_c1.net'    # the graph of the traffic network (the file format is specified by the algorithm's help)
-ODpairs = ['s|t'] # the list of origins and destinations
+graph_file = './network-files-master/Braess-graphs/OQPD.net'    # the graph of the traffic network (the file format is specified by the algorithm's help)
+ODpairs = ['O|D'] # the list of origins and destinations
 flow = 1.0               # the flow of vehicles to be used when computing the links' costs (the default is zero)("initial optimism" technique of Q-learning)
-num_agents = 4200       # the number of agents of the simulation
+num_agents = 1500       # the number of agents of the simulation
 K = 100                  	# the number of paths to find 
 num_iterations = 200    # the number of iterations of the simulation
-forecast = True         #forecast given
-manipulation = False   #forecast manipulation
+forecast = True        #forecast given
+manipulation = True   #forecast manipulation
+invasion = False		#new greedy_agents at num_iterations/3
+invasion_proportion = 0.1	#proportion of new greedy_agents
 
 # generate the list of vertices and edges from the network file
 V, E, OD, EF = KSP.generateGraph(graph_file, flow)
@@ -61,7 +63,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
         #for p in p_routes:
             #usages.append(str(routes_use[p]))
         #print ",".join(usages)
-        #print str(routes_use[max_route])
+        #print str(routes_use[max_route]),
 
 	    #process edges cost
         costs = {}
@@ -85,8 +87,16 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                     #print cost
                     #print ag.p_table
                 ag.update_agent(r,cost)
+                #global_cost += cost
+            for route in routes:
+                #print route[0]
+                cost = 0
+                for edge in route[0]:
+                    if edge in edges_use.keys():
+                        cost += costs[edge]
                 global_cost += cost
-            print global_cost#, routes_use[max_route]
+            #print global_cost#, routes_use[max_route]
+            print routes_use[max_route]
         
         else:
             #return forecast and receive new choices
@@ -138,16 +148,33 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
                     #if ai == 0:
                         #print edge,costs[edge]
                     cost += new_costs[edge]
-                if ai == 0:
-                    #print cost
+                #if ai == 0:
+                    #print cost,
                     #print ag.p_table
-                    print ag.routes_costs_somatories['s->v1->w1->t']/(ag.routes_usage['s->v1->w1->t']+(1.0/sys.maxint)),
-                    print ag.routes_costs_somatories['s->v1->t']/(ag.routes_usage['s->v1->t']+(1.0/sys.maxint)),
-                    print ag.routes_costs_somatories['s->w1->t']/(ag.routes_usage['s->w1->t']+(1.0/sys.maxint)),
-                    print r,cost,
+                    #print ag.routes_costs_somatories['o->q->p->d']/(ag.routes_usage['o->q->p->d']+(1.0/sys.maxint)),
+                    #print ag.routes_costs_somatories['o->q->d']/(ag.routes_usage['o->q->d']+(1.0/sys.maxint)),
+                    #print ag.routes_costs_somatories['o->p->d']/(ag.routes_usage['o->p->d']+(1.0/sys.maxint)),
+                    #print r,cost,
                 ag.update_agent(r,cost)
+                #global_cost += cost
+            for route in routes:
+                #print route[0]
+                cost = 0
+                for edge in route[0]:
+                    if edge in new_edges_use.keys():
+                        cost += new_costs[edge]
                 global_cost += cost
-            print global_cost#new_routes_use[max_route]
+            #print global_cost#new_routes_use[max_route]
+            print new_routes_use[max_route]
+        
+        if invasion and (it == num_iterations/3):
+            n_stay = int(num_agents*(1.0-invasion_proportion))
+            n_leave = int(num_agents-n_stay)
+            agents = random.sample(agents, n_stay)
+            for _ in xrange(n_leave):
+                a = Agent(routes,delta=0.8,learning_p=0.2,forecast=False) #new agents that doesn't receive forecast
+                agents.append(a)
+            
 
 
 

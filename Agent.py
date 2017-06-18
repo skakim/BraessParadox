@@ -24,9 +24,10 @@ def string_to_route(route):
     return r
 
 class Agent:
-    def __init__(self,routes,delta=1.0,learning_p=1.0):
+    def __init__(self,routes,delta=1.0,learning_p=1.0,forecast=True):
         self.delta = delta
         self.learning_p = learning_p
+	self.forecast = forecast
         #self.routes_costs = {}
         self.routes_costs_somatories = {}
         self.routes_usage = {}
@@ -92,13 +93,16 @@ class Agent:
         return string_to_route(r)
 
     def process_forecast(self,route,cost):
-        self.update_agent(route,cost)
-        r = route_to_string(route)
-        mean = self.routes_costs_somatories[r]/self.routes_usage[r]
-        if cost <= mean:
+        if self.forecast:
+            self.update_agent(route,cost)
+            r = route_to_string(route)
+            mean = self.routes_costs_somatories[r]/self.routes_usage[r]
+            if cost <= mean:
+                return route
+            else: #choose another route
+                return self.select_route_except(route_to_string(route))
+        else:
             return route
-        else: #choose another route
-            return self.select_route_except(route_to_string(route))
 
 
 
