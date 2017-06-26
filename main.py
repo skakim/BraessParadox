@@ -1,6 +1,7 @@
 from kspmaster import KSP
 from Agent import Agent
 import sys
+import random
 
 # parameters to be passed to the KSP algorithm
 graph_file = './network-files-master/Braess-graphs/OQPD.net'    # the graph of the traffic network (the file format is specified by the algorithm's help)
@@ -11,8 +12,8 @@ K = 100                  	# the number of paths to find
 num_iterations = 200    # the number of iterations of the simulation
 forecast = True        #forecast given
 manipulation = True   #forecast manipulation
-invasion = False		#new greedy_agents at num_iterations/3
-invasion_proportion = 0.1	#proportion of new greedy_agents
+invasion = True		#new greedy_agents at num_iterations/3
+invasion_proportion = 0.001	#proportion of new greedy_agents
 
 # generate the list of vertices and edges from the network file
 V, E, OD, EF = KSP.generateGraph(graph_file, flow)
