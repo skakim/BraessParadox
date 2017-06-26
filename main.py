@@ -12,8 +12,9 @@ K = 100                  	# the number of paths to find
 num_iterations = 200    # the number of iterations of the simulation
 forecast = True        #forecast given
 manipulation = True   #forecast manipulation
-invasion = True		#new greedy_agents at num_iterations/3
+invasion = False		#new greedy_agents at num_iterations/3
 invasion_proportion = 0.001	#proportion of new greedy_agents
+forecast_mistrust = True     #resistance to the forecast
 
 # generate the list of vertices and edges from the network file
 V, E, OD, EF = KSP.generateGraph(graph_file, flow)
@@ -38,7 +39,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
     agents = []
 
     for i in xrange(num_agents):
-        a = Agent(routes,delta=0.8,learning_p=0.2)
+        a = Agent(routes,delta=0.8,learning_p=0.2,resistence=forecast_mistrust)
         agents.append(a)
         #if i == 0:
             #print a.p_table
@@ -169,6 +170,7 @@ for od in ODpairs: # to look at all pairs, use the variable OD (above)
             print new_routes_use[max_route]
         
         if invasion and (it == num_iterations/3):
+            #print("INVASION!")
             n_stay = int(num_agents*(1.0-invasion_proportion))
             n_leave = int(num_agents-n_stay)
             agents = random.sample(agents, n_stay)

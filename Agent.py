@@ -1,8 +1,11 @@
 from kspmaster import KSP
 import numpy as np
 import sys
+from numpy import exp
+from math import fabs
 
 epsilon = 1.0/sys.maxint #avoid "division by zero" error
+fermiK = 10.0
 
 def route_to_string(route):
     r = ""
@@ -23,11 +26,23 @@ def string_to_route(route):
         r.append(a)
     return r
 
+def normalize(value, oldmin, oldmax, newmin, newmax):
+    newvalue = (((float(value) - oldmin) * (newmax - newmin)) / (oldmax - oldmin)) + newmin
+    return newvalue
+
+def fermi_mistrust(Px,Py,K):
+    delta = -fabs(-(Py - Px))
+    w = (1/(1+(exp(-delta/K))))
+    w = normalize(w,0.0,0.5,0.0,1.0)
+    #print(Px,Py,delta,w)
+    return w
+
 class Agent:
-    def __init__(self,routes,delta=1.0,learning_p=1.0,forecast=True):
+    def __init__(self,routes,delta=1.0,learning_p=1.0,forecast=True,resistence=False):
         self.delta = delta
         self.learning_p = learning_p
-	self.forecast = forecast
+        self.forecast = forecast
+        self.resistence = resistence
         #self.routes_costs = {}
         self.routes_costs_somatories = {}
         self.routes_usage = {}
@@ -94,13 +109,23 @@ class Agent:
 
     def process_forecast(self,route,cost):
         if self.forecast:
-            self.update_agent(route,cost)
-            r = route_to_string(route)
-            mean = self.routes_costs_somatories[r]/self.routes_usage[r]
-            if cost <= mean:
-                return route
-            else: #choose another route
-                return self.select_route_except(route_to_string(route))
+            if not(self.resistence):
+                self.update_agent(route,cost)
+                r = route_to_string(route)
+                mean = (self.routes_costs_somatories[r]+epsilon)/(self.routes_usage[r] + epsilon)
+                if cost <= mean:
+                    return route
+                else: #choose another route
+                    return self.select_route_except(r)
+            else: #resistent to forecast
+                r = route_to_string(route)
+                mean = (self.routes_costs_somatories[r]+epsilon)/(self.routes_usage[r] + epsilon)
+                if np.random.random() <= fermi_mistrust(mean,cost,fermiK):
+                    self.update_agent(route,cost)
+                    #print(r,mean,cost)
+                    return route
+                else:
+                    return self.select_route_except(r)                    
         else:
             return route
 
